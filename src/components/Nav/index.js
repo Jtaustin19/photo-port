@@ -1,54 +1,73 @@
-import React, { useEffect } from 'react';
-import { capitalizeFirstLetter } from '../../utils/helpers';
+import React from 'react';
+import { render, cleanup } from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
+import Nav from '..';
 
-function Nav(props) {
-    const {
-        categories = [],
-        setCurrentCategory,
-        currentCategory,
-    } = props;
+const categories = [
+    { name: 'portraits', description: 'Portraits of people in my life' }
+];
+const mockCurrentCategory = jest.fn();
+const mockSetCurrentCategory = jest.fn();
+const mockContactSelected = jest.fn();
+const mockSetContactSelected = jest.fn();
 
-    useEffect(() => {
-        document.title = capitalizeFirstLetter(currentCategory.name);
-    }, [currentCategory]);
 
-    return (
-        <header className="flex-row px-1">
-        <h2>
-            <a data-testid="link" href="/">
-            <span role="img" aria-label="camera"> 📸</span> Oh Snap!
-            </a>
-        </h2>
-        <nav>
-            <ul className="flex-row">
-                <li className="mx-2">
-                    <a data-testid="about" href="#about">
-                    About me
-                    </a>
-                </li>
-                <li className="mx-2">
-                    <span>Contact</span>
-                </li>
-                {categories.map((category) => (
-                <li
-                    className={`mx-1 ${
-                    currentCategory.name === category.name && 'navActive'
-                    }`}
-                    key={category.name}
-                >
-                    <span
-                    onClick={() => {
-                     setCurrentCategory(category)
-                    }}
-                > 
-                    {capitalizeFirstLetter(category.name)}
-                    </span>
-                </li>
-                ))}
-            </ul>
-        </nav>
-    </header>
-  );
-};
+afterEach(cleanup);
 
-export default Nav;
+describe('Nav component', () => {
+
+    // baseline test
+    it('renders', () => {
+        render(<Nav
+            categories={categories}
+            setCurrentCategory={mockSetCurrentCategory}
+            currentCategory={mockCurrentCategory}
+            contactSelected={mockContactSelected}
+            setContactSelected={mockSetContactSelected}
+        />);
+    });
+
+    // snapshot test
+    it('matches snapshot Dom node structure', () => {
+        const { asFragment } = render(<Nav
+            categories={categories}
+            setCurrentCategory={mockSetCurrentCategory}
+            currentCategory={mockCurrentCategory}
+            contactSelected={mockContactSelected}
+            setContactSelected={mockSetContactSelected}
+        />);
+        expect(asFragment()).toMatchSnapshot();
+    });
+
+});
+
+describe('emoji is visible', () => {
+
+    it('inserts emoji into the h2', () => {
+        const { getByLabelText } = render(<Nav
+            categories={categories}
+            setCurrentCategory={mockSetCurrentCategory}
+            currentCategory={mockCurrentCategory}
+            contactSelected={mockContactSelected}
+            setContactSelected={mockSetContactSelected}
+        />);
+        expect(getByLabelText('camera')).toHaveTextContent('📸');
+    });
+
+});
+
+describe('links are visible', () => {
+
+    it('inserts text into the links', () => {
+        const { getByTestId } = render(<Nav
+            categories={categories}
+            setCurrentCategory={mockSetCurrentCategory}
+            currentCategory={mockCurrentCategory}
+            contactSelected={mockContactSelected}
+            setContactSelected={mockSetContactSelected}
+        />);
+        expect(getByTestId('link')).toHaveTextContent('Oh Snap!');
+        expect(getByTestId('about')).toHaveTextContent('About me');
+    });
+
+});
